@@ -1,7 +1,18 @@
 from bigquery_eventtracking_regular_report_module import _query
+from bigquery_eventtracking_regular_report_module import parse
 
+''' daily '''
 
-def get_daily_event_data(StartTime: str=None, EndTime: str=None) -> 'dataframe':
-    return _query.get_eventTracking_data_by_date(StartTime, EndTime)
+def get_daily_transaction_rate(startTime, endTime, eventTime):
+    df = _query.get_daily_transaction_rate(startTime, endTime)
+    df = parse.mapping_transaction_rate(df ,eventTime)
+    print(df)
+    return df
+
+def get_daily_transaction_error(startTime, endTime, eventTime):
+    df = _query.get_daily_transaction_error(startTime, endTime)
+    df = parse.mapping_transaction_error(df, eventTime)
+    print(df)
+    return df
 
 
