@@ -1,43 +1,32 @@
 from bigquery_eventtracking_regular_report_module import api
-from bigquery_eventtracking_regular_report_module import parse
 from bigquery_eventtracking_regular_report_module import storage
 import logging
-
+import time
 from datetime import timedelta, datetime
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
 
-def transaction_result(StartDate, df):
-    df = parse.get_daily_counted_data(StartDate, df)
-    return df
-
-
-def transaction_error(StartDate, df):
-    df = parse.count_error_codes(StartDate, df)
-    return df
-
-
 def get_bigquery_eventtracking():
 
-    endTime = datetime.now().strftime('%Y-%m-%d')
-    startTime = (datetime.now() + timedelta(days=-1)).strftime('%Y-%m-%d')
-    #endTime = (datetime.now() + timedelta(days=-4)).strftime('%Y-%m-%d')
-    #startTime = (datetime.now() + timedelta(days=-5)).strftime('%Y-%m-%d')
+    # for loading past data
+    for n in range(0,1):
+        
+        # convert time zone from utc+0 to utc+8
+        eventTime = (datetime.now() + timedelta(days=-n)).strftime('%Y-%m-%d')
+        startTime = (datetime.now() + timedelta(days=-n-1)).strftime('%Y-%m-%d') + 'T16:00:00'
+        endTime = (datetime.now() + timedelta(days=-n)).strftime('%Y-%m-%d') + 'T16:00:00'
+        logging.info('loading data by date:' + eventTime)
+
+        # download data (Extrat+Transform)
+        transaction_rate = api.get_daily_transaction_rate(startTime, endTime, eventTime)
+        transaction_error = api.get_daily_transaction_error(startTime, endTime, eventTime)
 
 
-    logging.info('loading data by date:' + startTime)
-
-    # download data
-    df = api.get_daily_event_data(startTime, endTime)
-
-    # get result
-    trans_result = transaction_result(startTime, df)
-    error_codes = transaction_error(startTime, df)
-
-    # storage data
-    storage.save_transaction_success_rate(trans_result)
-    storage.save_transaction_error(error_codes)
+        # storage data (Load)
+        storage.save_transaction_rate(transaction_rate, eventTime)
+        storage.save_transaction_error(transaction_error, eventTime)
+        time.sleep(0.5)
 
 
 default_args = {
@@ -54,8 +43,8 @@ with DAG(
         'bigquery_eventtracking_regular_report',
         default_args=default_args,
         description='download eventtracking from bigquery server to make a regular report',
-        schedule_interval='@daily',
-        start_date=datetime(2021, 11, 7),
+        schedule_interval=timedelta(minutes=10),
+        start_date=datetime(2022, 7, 1),
         catchup=False,
         tags=['report'],
 ) as dag:
