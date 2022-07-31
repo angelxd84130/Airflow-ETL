@@ -18,6 +18,14 @@ def mapping_transaction_error(df, eventTime) -> 'dataframe':
     return df
 
 
+def mapping_sport_transaction(df, eventTime) -> 'dataframe':
+    df['event_date'] = eventTime
+    return df
+
+
+def mapping_sport_error(df, eventTime) -> 'dataframe':
+    return df
+
 
 ''' weekly '''
 
