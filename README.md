@@ -31,9 +31,9 @@
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#structure">Structure</a></li>
-        <li><a href="#ETL">ETL</a></li>
+      <ul>  
+        <li><a href="#structure">Structure</a></li>  
+        <li><a href="#etl">ETL</a></li>  
         <li><a href="#evaluation">Evaluation</a></li>
         <li><a href="#built-with">Built With</a></li>
       </ul>
@@ -67,7 +67,7 @@ Here's why:
 * Simply research running records through the log file system   
 * Obtain and store the required data after the ETL process  
   
-### Struture  
+### Structure  
 ![AirFlow-ETL][product-screenshot0]   
 The whole architecture consists of two independent systems, one is AirFlow-ETL and the other is a Real-time Dashboard.  
 This system runs the ETL program regularly through the AirFlow system, uses the JSON key to obtain event tracking data from Google BigQuery, converts the data, 
@@ -79,7 +79,7 @@ classifying the transaction results and error codes, and then updating data in M
  
 
 #### Extract  
-Using JSON key accesses tables on BigQuery, and load daily data through SQL. 
+Using JSON key accesses tables on BigQuery, and load daily data through SQL.   
 Since the database time zone on BigQuery is different from the local one, the UTC+8 time zone problem must be dealt with before using SQL to retrieve data.
 ```
 # bigquery_eventtracking_regular_report.py
@@ -97,41 +97,47 @@ df['error_rate'] = df['sum_of_error'] / sum(df['sum_of_error'])
 
 #### Load    
 Insert/ Update transformed data on MySQL through SQL.  
-If the row data already in the db -> update the value.  
-Else -> Insert the row data.  
+- If the row data already in the db -> update the value.  
+- Else -> Insert the row data.  
 ```
 # storage.py
-logging.info('searching exist in db..' + error_code)
-        sql = f"""
-                SELECT * From {table} 
-                WHERE event_date="{eventTime}" and error_code="{error_code}" and sport_code="{sport_code}"; 
-            """
-        cur.execute(sql)
 
-        if(cur.fetchone()):
-            logging.info('updating data..')
-            sql = f""" 
-                    UPDATE {table} SET sum_of_error = {sum_of_error} 
-                    WHERE event_date = "{eventTime}" and error_code = "{error_code}" and sport_code="{sport_code}";
-                  """ 
-        else:
-            logging.info('inserting data..')
-            sql = f"""
-                    INSERT INTO {table} (event_date, sport_code, error_code, sum_of_error)
-                    VALUES ("{eventTime}", "{sport_code}", "{error_code}", {sum_of_error}) ;
-                """ 
+logging.info('searching exist in db..' + error_code)
+sql = f"""
+		SELECT * From {table} 
+		WHERE event_date="{eventTime}" and error_code="{error_code}" and sport_code="{sport_code}"; 
+	"""
+cur.execute(sql)
+
+if(cur.fetchone()):
+    logging.info('updating data..')
+    sql = f""" 
+			UPDATE {table} SET sum_of_error = {sum_of_error} 
+			WHERE event_date = "{eventTime}" and error_code = "{error_code}" and sport_code="{sport_code}";
+		""" 
+else:
+    logging.info('inserting data..')
+        sql = f"""
+				INSERT INTO {table} (event_date, sport_code, error_code, sum_of_error)
+				VALUES ("{eventTime}", "{sport_code}", "{error_code}", {sum_of_error}) ;
+            """ 
         cur.execute(sql)
         conn.commit()
 ```
 
 ### Evaluation  
 1. Check whether the dag file runs every 10 mins  
+AirFlow Dag Panel  
 ![AirFlow-Dag][product-screenshot1]  
-
-2. Evaluate the data is written in database correctly
-![ETL-Tables][product-screenshot2]  
-
-
+  
+  
+2. Evaluate the data is written in database correctly  
+Table : sport_transaction_error  
+![sport_transaction_error][product-screenshot2]   
+Table : sport_transaction_result  
+![sport_transaction_result][product-screenshot3]    
+  
+  
 ### Built With
 
 * [AirFlow](https://airflow.apache.org/)
@@ -144,32 +150,42 @@ logging.info('searching exist in db..' + error_code)
 <!-- GETTING STARTED -->
 ## Getting Started
 
-Start with a python file with any machine learning model ex.NaiveBayes.py  
-Download code and repalce the api_key to your own.
+Download the whole project except this README file and the pic folder, and move the project under the path: /airflow/dags/  
 
 ### Prerequisites
 
 
-1. Get a free API Key at [NewsAPI](https://newsapi.org/docs/client-libraries/python)
-2. Replace api_key to your own.
+1. Install AirFlow and set up the Panel  
+2. Replace BigQuery JSON key and table name to your own.
    ```sh
-   newsapi = NewsApiClient(api_key=' your api key here ')
+   # _query.py
+   credential_path = "/home/albert/airflow/dags/bigquery_eventtracking_regular_report_module/sg-prod-readonly-303206-cb8365379fd6.json"  
    ```
-3. Run the python file
-   
-4. Check the plot to see predict results
+3. Install a local database MySQL & Create tables      
+4. Create a virtual enviroment for airflow test tasks   
+   ```  
+
+   ```  
+5. Clone the project into the enviroment and check if it's runnable  
+   - Check whether the dag file is readable for the airflow dag list  
+   ```  
+   ```  
+   - Check whether the dag tasks is detectable for the task list  
+   ```  
+   ```  
+   - Check whether the tasks in the dag are runnable  
+   ```  
+   ```  
+6. Close the airflow virtul evniroment 
+7. Clone the project again into the real enviroment under /airflow/dags  
+8. Check whether the dag show up on the AirFlow Dag Panel
 
 
 
 <!-- USAGE EXAMPLES -->
-## Usage
-
-Use the plots to check result.  
-### Data 
-  
-![DataAccumulation][product-screenshot0]  
-![Data][product-screenshot1]  
- 
+## Usage  
+The structure is workable for every ETL process,  
+and the AirFlow system helps to centrally manage all tasks and instantly detect errors in operation.  
 
 
 
@@ -212,4 +228,4 @@ email: angelxd84130@gmail.com
 [product-screenshot0]: /bigquery_eventtracking_regular_report_module/pic/AirFlow-ETL.png
 [product-screenshot1]: /bigquery_eventtracking_regular_report_module/pic/AirFlow-Dag.png
 [product-screenshot2]: /bigquery_eventtracking_regular_report_module/pic/sport_transaction_error.png
-[product-screenshot3]: NaiveBayes.png
+[product-screenshot3]: /bigquery_eventtracking_regular_report_module/pic/sport_transaction_result.png
