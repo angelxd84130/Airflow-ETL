@@ -4,10 +4,9 @@ import pymysql
 import logging
 
 
-
 def db_connect():
     logging.info('connecting to local db..')
-    conn = pymysql.connect(host="127.0.0.1", user="root", password='zxcv1234', port=3306)
+    conn = pymysql.connect(host="127.0.0.1", user="root", password='', port=3306)
     cur = conn.cursor()
     logging.info('connecting successful.')
     return cur, conn
