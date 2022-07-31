@@ -9,21 +9,14 @@ from airflow.operators.python import PythonOperator
 
 
 def get_bigquery_eventtracking():
-
-    # convert time zone from utc+0 to utc+8
-    '''
-    # for loading current data
-    eventTime =  datetime.now().strftime('%Y-%m-%d')
-    startTime = (datetime.now() + timedelta(days=-1)).strftime('%Y-%m-%d') + 'T16:00:00'
-    endTime = datetime.now().strftime('%Y-%m-%d') + 'T16:00:00'
     
-    '''
+
     # for loading past data
     for n in range(0,2):
+        # convert time zone from utc+0 to utc+8
         eventTime = (datetime.now() + timedelta(days=-n)).strftime('%Y-%m-%d')
         startTime = (datetime.now() + timedelta(days=-n-1)).strftime('%Y-%m-%d') + 'T16:00:00'
         endTime = (datetime.now() + timedelta(days=-n)).strftime('%Y-%m-%d') + 'T16:00:00'
-
         logging.info('loading data by date:' + eventTime)
 
         # download data (Extrat+Transform)
