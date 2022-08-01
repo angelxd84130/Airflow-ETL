@@ -112,17 +112,17 @@ cur.execute(sql)
 if(cur.fetchone()):
     logging.info('updating data..')
     sql = f""" 
-			UPDATE {table} SET sum_of_error = {sum_of_error} 
-			WHERE event_date = "{eventTime}" and error_code = "{error_code}" and sport_code="{sport_code}";
-		""" 
+		UPDATE {table} SET sum_of_error = {sum_of_error} 
+		WHERE event_date = "{eventTime}" and error_code = "{error_code}" and sport_code="{sport_code}";
+	""" 
 else:
     logging.info('inserting data..')
-        sql = f"""
-				INSERT INTO {table} (event_date, sport_code, error_code, sum_of_error)
-				VALUES ("{eventTime}", "{sport_code}", "{error_code}", {sum_of_error}) ;
-            """ 
-        cur.execute(sql)
-        conn.commit()
+    sql = f"""
+		INSERT INTO {table} (event_date, sport_code, error_code, sum_of_error)
+		VALUES ("{eventTime}", "{sport_code}", "{error_code}", {sum_of_error}) ;
+        """ 
+cur.execute(sql)
+conn.commit()
 ```
 
 ### Evaluation  
@@ -164,21 +164,28 @@ Download the whole project except this README file and the pic folder, and move 
 3. Install a local database MySQL & Create tables      
 4. Create a virtual enviroment for airflow test tasks   
    ```  
-
+   source airflow_venv/bin/activate
    ```  
 5. Clone the project into the enviroment and check if it's runnable  
    - Check whether the dag file is readable for the airflow dag list  
    ```  
+   airflow dags list
    ```  
    - Check whether the dag tasks is detectable for the task list  
    ```  
+   airflow tasks list <dag_id>
    ```  
    - Check whether the tasks in the dag are runnable  
    ```  
+   airflow tasks test <dag_id> <task_id> <start_time>
+   ```    
+   (time formate ex. yyyy-mm-dd)  
+6. Close the airflow virtul evniroment  
    ```  
-6. Close the airflow virtul evniroment 
-7. Clone the project again into the real enviroment under /airflow/dags  
-8. Check whether the dag show up on the AirFlow Dag Panel
+   deactivate  
+   ```  
+7. Clone the project again into the real enviroment under /airflow/dags   
+8. Check whether the dag show up on the AirFlow Dag Panel  
 
 
 
